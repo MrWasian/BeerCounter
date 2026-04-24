@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0d0d0d" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="🍺 Beers" />
+  <title>Beer Counter</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+  <div class="noise"></div>
+
+  <nav class="tabs">
+    <button class="tab active" data-tab="counter">TONIGHT</button>
+    <button class="tab" data-tab="calendar">CALENDAR</button>
+  </nav>
+
+  <!-- COUNTER TAB -->
+  <section id="counter" class="tab-content active">
+    <div class="date-banner">
+      <span id="display-date"></span>
+    </div>
+
+    <div class="counter-wrap">
+      <div class="beer-number" id="beer-count">0</div>
+      <div class="beer-label">BEERS</div>
+    </div>
+
+    <div class="btn-row">
+      <button class="ctrl-btn minus" id="minus-btn" onclick="addBeer(-1)">−1</button>
+      <button class="ctrl-btn plus" id="plus-btn" onclick="addBeer(1)">+1</button>
+    </div>
+
+
+  </section>
+
+  <!-- CALENDAR TAB -->
+  <section id="calendar" class="tab-content">
+    <div class="cal-header">
+      <button class="cal-nav" onclick="changeMonth(-1)">&#8592;</button>
+      <span id="cal-month-label"></span>
+      <button class="cal-nav" onclick="changeMonth(1)">&#8594;</button>
+    </div>
+
+    <div class="cal-grid" id="cal-grid">
+      <div class="cal-day-name">SUN</div>
+      <div class="cal-day-name">MON</div>
+      <div class="cal-day-name">TUE</div>
+      <div class="cal-day-name">WED</div>
+      <div class="cal-day-name">THU</div>
+      <div class="cal-day-name">FRI</div>
+      <div class="cal-day-name">SAT</div>
+    </div>
+
+    <div class="cal-totals">
+      <div>MONTH TOTAL &nbsp;·&nbsp; <span id="month-total">0</span> BEERS</div>
+    </div>
+  </section>
+
+  <script src="app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    }
+  </script>
+</body>
+</html>
