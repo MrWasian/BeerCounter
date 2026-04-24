@@ -1,10 +1,10 @@
 const CACHE = 'beer-counter-v1';
 const ASSETS = [
-  '/',
-  '/index.html',
-  '/style.css',
-  '/app.js',
-  '/manifest.json',
+  '/BeerCounter/',
+  '/BeerCounter/index.html',
+  '/BeerCounter/style.css',
+  '/BeerCounter/app.js',
+  '/BeerCounter/manifest.json',
   'https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&display=swap'
 ];
 
