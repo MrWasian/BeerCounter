@@ -330,3 +330,10 @@ html, body {
   border-top: 1px solid var(--border);
   padding-top: 14px;
 }
+
+.cal-alltime {
+  margin-top: 10px;
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  color: var(--amber);
+}

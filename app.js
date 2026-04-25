@@ -146,6 +146,10 @@ function renderCalendar() {
   }
 
   document.getElementById('month-total').textContent = monthTotal;
+
+  // All-time total across every day ever recorded
+  const allTime = Object.values(data).reduce((sum, val) => sum + (val || 0), 0);
+  document.getElementById('alltime-total').textContent = allTime;
 }
 
 // ── Init ───────────────────────────────────────────────────────────────
