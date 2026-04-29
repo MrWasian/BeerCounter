@@ -89,6 +89,7 @@ document.querySelectorAll('.tab').forEach(tab => {
 
 // ── Calendar ───────────────────────────────────────────────────────────
 let selectedDayKey = null;
+let calendarDate = new Date();
 
 function selectDay(key, cellEl) {
   selectedDayKey = key;
