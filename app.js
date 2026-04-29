@@ -1,6 +1,6 @@
 // ── Firebase setup ─────────────────────────────────────────────────────
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, set, get, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAyHS3kZ1miGQ5u4kVj_0XPN3AQkv_Da0A",
@@ -30,7 +30,6 @@ function generateCode() {
 function checkOnboarding() {
   if (!getMyName() || !getMyCode()) {
     document.getElementById('onboarding').classList.remove('hidden');
-    document.getElementById('app').classList.add('hidden');
   } else {
     document.getElementById('onboarding').classList.add('hidden');
     document.getElementById('app').classList.remove('hidden');
@@ -40,11 +39,13 @@ function checkOnboarding() {
 
 window.finishOnboarding = function() {
   const name = document.getElementById('ob-name').value.trim();
-  if (!name) { document.getElementById('ob-name').placeholder = 'Please enter a name!'; return; }
+  if (!name) {
+    document.getElementById('ob-name').placeholder = 'Please enter a name!';
+    return;
+  }
   const code = generateCode();
   localStorage.setItem('userName', name);
   localStorage.setItem('friendCode', code);
-  // Save to Firebase
   set(ref(db, `users/${code}`), { name, code, beers: {} });
   document.getElementById('onboarding').classList.add('hidden');
   document.getElementById('app').classList.remove('hidden');
@@ -75,7 +76,7 @@ function formatDisplay(key) {
   return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
 }
 
-// ── Local storage ──────────────────────────────────────────────────────
+// ── Local storage + Firebase sync ─────────────────────────────────────
 function getData() {
   try { return JSON.parse(localStorage.getItem('beerData') || '{}'); }
   catch { return {}; }
@@ -83,7 +84,6 @@ function getData() {
 
 function saveData(data) {
   localStorage.setItem('beerData', JSON.stringify(data));
-  // Sync to Firebase
   const code = getMyCode();
   if (code) set(ref(db, `users/${code}/beers`), data);
 }
@@ -114,7 +114,7 @@ function renderCounter(delta) {
   document.getElementById('display-date').textContent = formatDisplay(key);
 }
 
-// ── Tab switching ──────────────────────────────────────────────────────
+// ── Tabs — initialized immediately on load ─────────────────────────────
 function initTabs() {
   document.querySelectorAll('.tab').forEach(tab => {
     tab.addEventListener('click', () => {
@@ -140,7 +140,9 @@ window.selectDay = function(key, cellEl) {
   const count = data[key] || 0;
   const [y, m, d] = key.split('-');
   const date = new Date(parseInt(y), parseInt(m)-1, parseInt(d));
-  const label = date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }).toUpperCase();
+  const label = date.toLocaleDateString('en-US', {
+    weekday: 'short', month: 'short', day: 'numeric', year: 'numeric'
+  }).toUpperCase();
   document.getElementById('cal-edit-date').textContent = label;
   document.getElementById('cal-edit-count').textContent = count;
   document.getElementById('cal-edit').style.display = 'block';
@@ -169,6 +171,7 @@ function renderCalendar() {
   const data = getData();
   const year = calendarDate.getFullYear();
   const month = calendarDate.getMonth();
+
   document.getElementById('cal-month-label').textContent =
     calendarDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }).toUpperCase();
 
@@ -180,6 +183,7 @@ function renderCalendar() {
   const firstDay = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const todayKey = getNightKey();
+  let monthTotal = 0;
 
   for (let i = 0; i < firstDay; i++) {
     const blank = document.createElement('div');
@@ -187,7 +191,6 @@ function renderCalendar() {
     grid.appendChild(blank);
   }
 
-  let monthTotal = 0;
   for (let d = 1; d <= daysInMonth; d++) {
     const key = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     const count = data[key] || 0;
@@ -199,7 +202,7 @@ function renderCalendar() {
     if (key === todayKey) cell.classList.add('today');
     if (count > 0) cell.classList.add('has-drinks');
     if (key === selectedDayKey) cell.classList.add('selected');
-    cell.addEventListener('click', () => selectDay(key, cell));
+    cell.addEventListener('click', () => window.selectDay(key, cell));
 
     const dayNum = document.createElement('div');
     dayNum.className = 'cal-day-num';
@@ -222,11 +225,12 @@ function renderCalendar() {
 
 // ── Leaderboard ────────────────────────────────────────────────────────
 let lbPeriod = 'tonight';
-let lbUnsubscribe = null;
 
 window.setLbPeriod = function(period) {
   lbPeriod = period;
-  document.querySelectorAll('.lb-tab').forEach(t => t.classList.toggle('active', t.dataset.period === period));
+  document.querySelectorAll('.lb-tab').forEach(t =>
+    t.classList.toggle('active', t.dataset.period === period)
+  );
   renderLeaderboard();
 };
 
@@ -247,34 +251,28 @@ function getScore(beers, period) {
 
 function renderLeaderboard() {
   const myCode = getMyCode();
+  if (!myCode) return;
   const friends = getFriends();
   const allCodes = [myCode, ...friends];
-
   const list = document.getElementById('lb-list');
   list.innerHTML = '<div class="lb-loading">Loading...</div>';
 
-  const promises = allCodes.map(code =>
+  Promise.all(allCodes.map(code =>
     get(ref(db, `users/${code}`)).then(snap => snap.val())
-  );
-
-  Promise.all(promises).then(users => {
+  )).then(users => {
     const valid = users.filter(Boolean);
     valid.sort((a, b) => getScore(b.beers, lbPeriod) - getScore(a.beers, lbPeriod));
-
     list.innerHTML = '';
     if (valid.length === 0) {
       list.innerHTML = '<div class="lb-empty">No friends yet — share your code!</div>';
       return;
     }
-
     valid.forEach((user, i) => {
       const score = getScore(user.beers, lbPeriod);
       const isMe = user.code === myCode;
+      const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i+1}.`;
       const row = document.createElement('div');
       row.className = 'lb-row' + (isMe ? ' lb-me' : '');
-
-      const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i+1}.`;
-
       row.innerHTML = `
         <div class="lb-rank">${medal}</div>
         <div class="lb-name">${user.name}${isMe ? ' (you)' : ''}</div>
@@ -300,14 +298,11 @@ window.addFriend = async function() {
   const code = input.value.trim().toUpperCase();
   const err = document.getElementById('af-error');
   err.textContent = '';
-
   if (code.length < 6) { err.textContent = 'Codes are 6 characters.'; return; }
   if (code === getMyCode()) { err.textContent = "That's your own code!"; return; }
   if (getFriends().includes(code)) { err.textContent = 'Already added!'; return; }
-
   const snap = await get(ref(db, `users/${code}`));
   if (!snap.exists()) { err.textContent = 'Code not found. Check with your friend.'; return; }
-
   const friends = getFriends();
   friends.push(code);
   saveFriends(friends);
@@ -318,9 +313,7 @@ window.addFriend = async function() {
 
 // ── Modals ─────────────────────────────────────────────────────────────
 window.showModal = function(id) {
-  if (id === 'fc-modal') {
-    document.getElementById('modal-code').textContent = getMyCode();
-  }
+  if (id === 'fc-modal') document.getElementById('modal-code').textContent = getMyCode();
   document.getElementById(id).classList.remove('hidden');
 };
 
@@ -340,7 +333,8 @@ window.copyCode = function() {
 function initApp() {
   document.getElementById('lb-username').textContent = getMyName();
   renderCounter(0);
-  initTabs();
 }
 
+// Tabs always init at page load regardless of onboarding state
+initTabs();
 checkOnboarding();

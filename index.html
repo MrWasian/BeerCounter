@@ -23,7 +23,7 @@
     <div class="ob-inner">
       <div class="ob-emoji">🍺</div>
       <div class="ob-title">WELCOME</div>
-      <div class="ob-sub">What's your name?</div>
+      <div class="ob-sub">What is your name?</div>
       <input id="ob-name" class="ob-input" type="text" maxlength="16" placeholder="Enter your name" autocomplete="off" />
       <button class="ob-btn" onclick="finishOnboarding()">LET'S DRINK</button>
     </div>
@@ -58,7 +58,7 @@
     <nav class="tabs">
       <button class="tab active" data-tab="counter">TONIGHT</button>
       <button class="tab" data-tab="calendar">CALENDAR</button>
-      <button class="tab" data-tab="leaderboard">BOARD</button>
+      <button class="tab" data-tab="leaderboard">LEADERBOARD</button>
     </nav>
 
     <!-- COUNTER TAB -->
@@ -66,12 +66,10 @@
       <div class="date-banner">
         <span id="display-date"></span>
       </div>
-
       <div class="counter-wrap">
         <div class="beer-number" id="beer-count">0</div>
         <div class="beer-label">BEERS</div>
       </div>
-
       <div class="btn-row">
         <button class="ctrl-btn minus" onclick="addBeer(-1)">−1</button>
         <button class="ctrl-btn plus" onclick="addBeer(1)">+1</button>
@@ -85,7 +83,6 @@
         <span id="cal-month-label"></span>
         <button class="cal-nav" onclick="changeMonth(1)">&#8594;</button>
       </div>
-
       <div class="cal-edit" id="cal-edit" style="display:none;">
         <div class="cal-edit-date" id="cal-edit-date"></div>
         <div class="cal-edit-controls">
@@ -94,7 +91,6 @@
           <button class="ctrl-btn plus" onclick="editDay(1)">+1</button>
         </div>
       </div>
-
       <div class="cal-grid" id="cal-grid">
         <div class="cal-day-name">SUN</div>
         <div class="cal-day-name">MON</div>
@@ -104,7 +100,6 @@
         <div class="cal-day-name">FRI</div>
         <div class="cal-day-name">SAT</div>
       </div>
-
       <div class="cal-totals">
         <div>MONTH TOTAL &nbsp;·&nbsp; <span id="month-total">0</span> BEERS</div>
         <div class="cal-alltime">ALL TIME &nbsp;·&nbsp; <span id="alltime-total">0</span> BEERS</div>
@@ -117,18 +112,15 @@
         <div class="lb-title">LEADERBOARD</div>
         <div class="lb-user" id="lb-username"></div>
       </div>
-
       <div class="lb-actions">
         <button class="lb-action-btn" onclick="showModal('fc-modal')">MY CODE</button>
         <button class="lb-action-btn" onclick="showModal('af-modal')">+ ADD FRIEND</button>
       </div>
-
       <div class="lb-tabs">
         <button class="lb-tab active" data-period="tonight" onclick="setLbPeriod('tonight')">TONIGHT</button>
         <button class="lb-tab" data-period="month" onclick="setLbPeriod('month')">MONTH</button>
         <button class="lb-tab" data-period="alltime" onclick="setLbPeriod('alltime')">ALL TIME</button>
       </div>
-
       <div class="lb-list" id="lb-list">
         <div class="lb-loading">Loading...</div>
       </div>
@@ -136,7 +128,6 @@
 
   </div>
 
-  <!-- Firebase -->
   <script type="module" src="app.js"></script>
   <script>
     if ('serviceWorker' in navigator) {
