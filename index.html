@@ -18,67 +18,129 @@
 
   <div class="noise"></div>
 
-  <nav class="tabs">
-    <button class="tab active" data-tab="counter">TONIGHT</button>
-    <button class="tab" data-tab="calendar">CALENDAR</button>
-  </nav>
-
-  <!-- COUNTER TAB -->
-  <section id="counter" class="tab-content active">
-    <div class="date-banner">
-      <span id="display-date"></span>
+  <!-- ── ONBOARDING SCREEN ── -->
+  <div id="onboarding" class="onboarding hidden">
+    <div class="ob-inner">
+      <div class="ob-emoji">🍺</div>
+      <div class="ob-title">WELCOME</div>
+      <div class="ob-sub">What's your first name?</div>
+      <input id="ob-name" class="ob-input" type="text" maxlength="16" placeholder="Enter your name" autocomplete="off" />
+      <button class="ob-btn" onclick="finishOnboarding()">LET'S DRINK</button>
     </div>
+  </div>
 
-    <div class="counter-wrap">
-      <div class="beer-number" id="beer-count">0</div>
-      <div class="beer-label">BEERS</div>
+  <!-- ── FRIEND CODE MODAL ── -->
+  <div id="fc-modal" class="modal hidden">
+    <div class="modal-inner">
+      <div class="modal-title">YOUR FRIEND CODE</div>
+      <div class="modal-code" id="modal-code"></div>
+      <div class="modal-sub">Share this with friends so they can add you to their leaderboard</div>
+      <button class="modal-btn" onclick="copyCode()">COPY CODE</button>
+      <button class="modal-close" onclick="closeModal('fc-modal')">CLOSE</button>
     </div>
+  </div>
 
-    <div class="btn-row">
-      <button class="ctrl-btn minus" id="minus-btn" onclick="addBeer(-1)">−1</button>
-      <button class="ctrl-btn plus" id="plus-btn" onclick="addBeer(1)">+1</button>
+  <!-- ── ADD FRIEND MODAL ── -->
+  <div id="af-modal" class="modal hidden">
+    <div class="modal-inner">
+      <div class="modal-title">ADD A FRIEND</div>
+      <div class="modal-sub">Enter their friend code</div>
+      <input id="af-input" class="ob-input" type="text" maxlength="6" placeholder="ABC123" autocomplete="off" style="text-transform:uppercase;letter-spacing:0.2em;" />
+      <button class="modal-btn" onclick="addFriend()">ADD FRIEND</button>
+      <div id="af-error" class="af-error"></div>
+      <button class="modal-close" onclick="closeModal('af-modal')">CANCEL</button>
     </div>
+  </div>
 
+  <!-- ── MAIN APP ── -->
+  <div id="app" class="hidden">
 
-  </section>
+    <nav class="tabs">
+      <button class="tab active" data-tab="counter">TONIGHT</button>
+      <button class="tab" data-tab="calendar">CALENDAR</button>
+      <button class="tab" data-tab="leaderboard">BOARD</button>
+    </nav>
 
-  <!-- CALENDAR TAB -->
-  <section id="calendar" class="tab-content">
-    <div class="cal-header">
-      <button class="cal-nav" onclick="changeMonth(-1)">&#8592;</button>
-      <span id="cal-month-label"></span>
-      <button class="cal-nav" onclick="changeMonth(1)">&#8594;</button>
-    </div>
-
-    <div class="cal-edit" id="cal-edit" style="display:none;">
-      <div class="cal-edit-date" id="cal-edit-date"></div>
-      <div class="cal-edit-controls">
-        <button class="ctrl-btn minus" onclick="editDay(-1)">−1</button>
-        <div class="cal-edit-count" id="cal-edit-count">0</div>
-        <button class="ctrl-btn plus" onclick="editDay(1)">+1</button>
+    <!-- COUNTER TAB -->
+    <section id="counter" class="tab-content active">
+      <div class="date-banner">
+        <span id="display-date"></span>
       </div>
-    </div>
 
-    <div class="cal-grid" id="cal-grid">
-      <div class="cal-day-name">SUN</div>
-      <div class="cal-day-name">MON</div>
-      <div class="cal-day-name">TUE</div>
-      <div class="cal-day-name">WED</div>
-      <div class="cal-day-name">THU</div>
-      <div class="cal-day-name">FRI</div>
-      <div class="cal-day-name">SAT</div>
-    </div>
+      <div class="counter-wrap">
+        <div class="beer-number" id="beer-count">0</div>
+        <div class="beer-label">BEERS</div>
+      </div>
 
-    <div class="cal-totals">
-      <div>MONTH TOTAL &nbsp;·&nbsp; <span id="month-total">0</span> BEERS</div>
-      <div class="cal-alltime">ALL TIME &nbsp;·&nbsp; <span id="alltime-total">0</span> BEERS</div>
-    </div>
-  </section>
+      <div class="btn-row">
+        <button class="ctrl-btn minus" onclick="addBeer(-1)">−1</button>
+        <button class="ctrl-btn plus" onclick="addBeer(1)">+1</button>
+      </div>
+    </section>
 
-  <script src="app.js"></script>
+    <!-- CALENDAR TAB -->
+    <section id="calendar" class="tab-content">
+      <div class="cal-header">
+        <button class="cal-nav" onclick="changeMonth(-1)">&#8592;</button>
+        <span id="cal-month-label"></span>
+        <button class="cal-nav" onclick="changeMonth(1)">&#8594;</button>
+      </div>
+
+      <div class="cal-edit" id="cal-edit" style="display:none;">
+        <div class="cal-edit-date" id="cal-edit-date"></div>
+        <div class="cal-edit-controls">
+          <button class="ctrl-btn minus" onclick="editDay(-1)">−1</button>
+          <div class="cal-edit-count" id="cal-edit-count">0</div>
+          <button class="ctrl-btn plus" onclick="editDay(1)">+1</button>
+        </div>
+      </div>
+
+      <div class="cal-grid" id="cal-grid">
+        <div class="cal-day-name">SUN</div>
+        <div class="cal-day-name">MON</div>
+        <div class="cal-day-name">TUE</div>
+        <div class="cal-day-name">WED</div>
+        <div class="cal-day-name">THU</div>
+        <div class="cal-day-name">FRI</div>
+        <div class="cal-day-name">SAT</div>
+      </div>
+
+      <div class="cal-totals">
+        <div>MONTH TOTAL &nbsp;·&nbsp; <span id="month-total">0</span> BEERS</div>
+        <div class="cal-alltime">ALL TIME &nbsp;·&nbsp; <span id="alltime-total">0</span> BEERS</div>
+      </div>
+    </section>
+
+    <!-- LEADERBOARD TAB -->
+    <section id="leaderboard" class="tab-content">
+      <div class="lb-header">
+        <div class="lb-title">LEADERBOARD</div>
+        <div class="lb-user" id="lb-username"></div>
+      </div>
+
+      <div class="lb-actions">
+        <button class="lb-action-btn" onclick="showModal('fc-modal')">MY CODE</button>
+        <button class="lb-action-btn" onclick="showModal('af-modal')">+ ADD FRIEND</button>
+      </div>
+
+      <div class="lb-tabs">
+        <button class="lb-tab active" data-period="tonight" onclick="setLbPeriod('tonight')">TONIGHT</button>
+        <button class="lb-tab" data-period="month" onclick="setLbPeriod('month')">MONTH</button>
+        <button class="lb-tab" data-period="alltime" onclick="setLbPeriod('alltime')">ALL TIME</button>
+      </div>
+
+      <div class="lb-list" id="lb-list">
+        <div class="lb-loading">Loading...</div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Firebase -->
+  <script type="module" src="app.js"></script>
   <script>
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').catch(() => {});
+      navigator.serviceWorker.register('/BeerCounter/sw.js').catch(() => {});
     }
   </script>
 </body>
