@@ -156,6 +156,8 @@ window.editDay = function(delta) {
   else data[selectedDayKey] = next;
   saveData(data);
   document.getElementById('cal-edit-count').textContent = next;
+  // If editing tonight's date, keep the counter tab in sync
+  if (selectedDayKey === getNightKey()) renderCounter(0);
   renderCalendar();
   document.querySelectorAll('.cal-cell[data-key]').forEach(c => {
     if (c.dataset.key === selectedDayKey) c.classList.add('selected');
