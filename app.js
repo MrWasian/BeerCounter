@@ -122,6 +122,7 @@ function initTabs() {
       document.querySelectorAll('.tab-content').forEach(s => s.classList.remove('active'));
       tab.classList.add('active');
       document.getElementById(tab.dataset.tab).classList.add('active');
+      if (tab.dataset.tab === 'counter') renderCounter(0);
       if (tab.dataset.tab === 'calendar') renderCalendar();
       if (tab.dataset.tab === 'leaderboard') renderLeaderboard();
     });
