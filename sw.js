@@ -1,4 +1,4 @@
-const CACHE = 'beer-counter-v1';
+const CACHE = 'beer-counter-v2';
 const ASSETS = [
   '/BeerCounter/',
   '/BeerCounter/index.html',
