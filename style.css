@@ -586,16 +586,15 @@ html, body {
 
 .lb-tabs {
   display: flex;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  overflow: hidden;
+  gap: 8px;
   margin-bottom: 20px;
 }
 
 .lb-tab {
   flex: 1;
-  background: none;
-  border: none;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
   color: var(--muted);
   font-family: 'Bebas Neue', sans-serif;
   font-size: 0.85rem;
@@ -608,6 +607,7 @@ html, body {
 .lb-tab.active {
   background: var(--amber-glow);
   color: var(--amber);
+  border-color: var(--amber);
 }
 
 .lb-list {
