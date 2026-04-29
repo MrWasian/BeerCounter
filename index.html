@@ -50,6 +50,15 @@
       <button class="cal-nav" onclick="changeMonth(1)">&#8594;</button>
     </div>
 
+    <div class="cal-edit" id="cal-edit" style="display:none;">
+      <div class="cal-edit-date" id="cal-edit-date"></div>
+      <div class="cal-edit-controls">
+        <button class="ctrl-btn minus" onclick="editDay(-1)">−1</button>
+        <div class="cal-edit-count" id="cal-edit-count">0</div>
+        <button class="ctrl-btn plus" onclick="editDay(1)">+1</button>
+      </div>
+    </div>
+
     <div class="cal-grid" id="cal-grid">
       <div class="cal-day-name">SUN</div>
       <div class="cal-day-name">MON</div>

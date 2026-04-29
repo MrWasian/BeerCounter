@@ -88,7 +88,47 @@ document.querySelectorAll('.tab').forEach(tab => {
 });
 
 // ── Calendar ───────────────────────────────────────────────────────────
-let calendarDate = new Date();
+let selectedDayKey = null;
+
+function selectDay(key, cellEl) {
+  selectedDayKey = key;
+
+  // Highlight selected cell
+  document.querySelectorAll('.cal-cell').forEach(c => c.classList.remove('selected'));
+  cellEl.classList.add('selected');
+
+  // Show edit panel
+  const data = getData();
+  const count = data[key] || 0;
+  const [y, m, d] = key.split('-');
+  const date = new Date(parseInt(y), parseInt(m)-1, parseInt(d));
+  const label = date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }).toUpperCase();
+
+  document.getElementById('cal-edit-date').textContent = label;
+  document.getElementById('cal-edit-count').textContent = count;
+  document.getElementById('cal-edit').style.display = 'block';
+}
+
+function editDay(delta) {
+  if (!selectedDayKey) return;
+  const data = getData();
+  const current = data[selectedDayKey] || 0;
+  const next = Math.max(0, current + delta);
+  if (next === 0) {
+    delete data[selectedDayKey];
+  } else {
+    data[selectedDayKey] = next;
+  }
+  saveData(data);
+  document.getElementById('cal-edit-count').textContent = next;
+  renderCalendar();
+
+  // Re-select the cell after re-render
+  const cells = document.querySelectorAll('.cal-cell[data-key]');
+  cells.forEach(c => {
+    if (c.dataset.key === selectedDayKey) c.classList.add('selected');
+  });
+}
 
 function changeMonth(delta) {
   calendarDate.setMonth(calendarDate.getMonth() + delta);
@@ -127,8 +167,11 @@ function renderCalendar() {
 
     const cell = document.createElement('div');
     cell.className = 'cal-cell';
+    cell.dataset.key = key;
     if (key === todayKey) cell.classList.add('today');
     if (count > 0) cell.classList.add('has-drinks');
+    if (key === selectedDayKey) cell.classList.add('selected');
+    cell.addEventListener('click', () => selectDay(key, cell));
 
     const dayNum = document.createElement('div');
     dayNum.className = 'cal-day-num';

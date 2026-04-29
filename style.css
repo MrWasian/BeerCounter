@@ -321,7 +321,53 @@ html, body {
   line-height: 1;
 }
 
-.cal-totals {
+.cal-edit {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--amber);
+  border-radius: 8px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 0 12px rgba(245, 166, 35, 0.15);
+}
+
+.cal-edit-date {
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  color: var(--amber);
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.cal-edit-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
+.cal-edit-controls .ctrl-btn {
+  padding: 10px 0;
+  width: 72px;
+  font-size: 1.4rem;
+}
+
+.cal-edit-count {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 3rem;
+  color: var(--amber);
+  min-width: 60px;
+  text-align: center;
+  line-height: 1;
+}
+
+.cal-cell.selected {
+  border-color: var(--amber);
+  box-shadow: 0 0 10px rgba(245, 166, 35, 0.4);
+  background: #2a1a00;
+}
+
+
   margin-top: 20px;
   text-align: center;
   font-size: 0.65rem;
