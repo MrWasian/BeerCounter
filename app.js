@@ -28,6 +28,7 @@ function generateCode() {
 
 // ── Onboarding ─────────────────────────────────────────────────────────
 function checkOnboarding() {
+  document.getElementById('loading').classList.add('hidden');
   if (!getMyName() || !getMyCode()) {
     document.getElementById('onboarding').classList.remove('hidden');
   } else {
