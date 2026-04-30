@@ -28,13 +28,18 @@ function generateCode() {
 
 // ── Onboarding ─────────────────────────────────────────────────────────
 function checkOnboarding() {
-  document.getElementById('loading').classList.add('hidden');
-  if (!getMyName() || !getMyCode()) {
+  try {
+    document.getElementById('loading').classList.add('hidden');
+    if (!getMyName() || !getMyCode()) {
+      document.getElementById('onboarding').classList.remove('hidden');
+    } else {
+      document.getElementById('onboarding').classList.add('hidden');
+      document.getElementById('app').classList.remove('hidden');
+      initApp();
+    }
+  } catch(e) {
+    document.getElementById('loading').classList.add('hidden');
     document.getElementById('onboarding').classList.remove('hidden');
-  } else {
-    document.getElementById('onboarding').classList.add('hidden');
-    document.getElementById('app').classList.remove('hidden');
-    initApp();
   }
 }
 
@@ -387,4 +392,17 @@ function initApp() {
 
 // Tabs always init at page load regardless of onboarding state
 initTabs();
-checkOnboarding();
+
+// Fallback — if Firebase takes too long, show onboarding anyway after 5 seconds
+const loadingTimeout = setTimeout(() => {
+  checkOnboarding();
+}, 5000);
+
+// Normal init
+try {
+  checkOnboarding();
+  clearTimeout(loadingTimeout);
+} catch(e) {
+  console.error('Init error:', e);
+  checkOnboarding();
+}
