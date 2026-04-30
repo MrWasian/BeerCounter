@@ -93,7 +93,31 @@ function getCount(key) {
   return data[key] !== undefined ? data[key] : 0;
 }
 
-// ── Beer counter ───────────────────────────────────────────────────────
+// ── Notes ──────────────────────────────────────────────────────────────
+function getNotes() {
+  try { return JSON.parse(localStorage.getItem('beerNotes') || '{}'); }
+  catch { return {}; }
+}
+
+function saveNote(key, text) {
+  const notes = getNotes();
+  if (text.trim() === '') delete notes[key];
+  else notes[key] = text;
+  localStorage.setItem('beerNotes', JSON.stringify(notes));
+  // Sync to Firebase
+  const code = getMyCode();
+  if (code) set(ref(db, `users/${code}/notes`), notes);
+}
+
+function loadTonightNote() {
+  const key = getNightKey();
+  const notes = getNotes();
+  const textarea = document.getElementById('tonight-notes');
+  textarea.value = notes[key] || '';
+  textarea.addEventListener('input', () => saveNote(key, textarea.value));
+}
+
+
 window.addBeer = function(delta) {
   const key = getNightKey();
   const data = getData();
@@ -114,6 +138,16 @@ function renderCounter(delta) {
   document.getElementById('display-date').textContent = formatDisplay(key);
 }
 
+function loadTonightNote() {
+  const key = getNightKey();
+  const notes = getNotes();
+  const old = document.getElementById('tonight-notes');
+  const fresh = old.cloneNode(true);
+  old.parentNode.replaceChild(fresh, old);
+  fresh.value = notes[key] || '';
+  fresh.addEventListener('input', () => saveNote(key, fresh.value));
+}
+
 // ── Tabs — initialized immediately on load ─────────────────────────────
 function initTabs() {
   document.querySelectorAll('.tab').forEach(tab => {
@@ -122,7 +156,7 @@ function initTabs() {
       document.querySelectorAll('.tab-content').forEach(s => s.classList.remove('active'));
       tab.classList.add('active');
       document.getElementById(tab.dataset.tab).classList.add('active');
-      if (tab.dataset.tab === 'counter') renderCounter(0);
+      if (tab.dataset.tab === 'counter') { renderCounter(0); loadTonightNote(); }
       if (tab.dataset.tab === 'calendar') renderCalendar();
       if (tab.dataset.tab === 'leaderboard') renderLeaderboard();
     });
@@ -146,6 +180,17 @@ window.selectDay = function(key, cellEl) {
   }).toUpperCase();
   document.getElementById('cal-edit-date').textContent = label;
   document.getElementById('cal-edit-count').textContent = count;
+
+  // Load note for this day
+  const notes = getNotes();
+  const calNotes = document.getElementById('cal-notes');
+  calNotes.value = notes[key] || '';
+  // Remove old listener and add fresh one
+  const newCalNotes = calNotes.cloneNode(true);
+  calNotes.parentNode.replaceChild(newCalNotes, calNotes);
+  newCalNotes.value = notes[key] || '';
+  newCalNotes.addEventListener('input', () => saveNote(key, newCalNotes.value));
+
   document.getElementById('cal-edit').style.display = 'block';
 };
 
@@ -336,6 +381,7 @@ window.copyCode = function() {
 function initApp() {
   document.getElementById('lb-username').textContent = getMyName();
   renderCounter(0);
+  loadTonightNote();
 }
 
 // Tabs always init at page load regardless of onboarding state

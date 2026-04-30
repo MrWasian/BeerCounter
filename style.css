@@ -384,6 +384,38 @@ html, body {
   color: var(--amber);
 }
 
+/* ── NOTES ── */
+.notes-wrap {
+  width: 100%;
+  max-width: 320px;
+  margin-top: 24px;
+}
+
+.notes-label {
+  font-size: 0.6rem;
+  letter-spacing: 0.15em;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.notes-input {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: 'DM Mono', monospace;
+  font-size: 0.8rem;
+  line-height: 1.6;
+  padding: 12px 14px;
+  resize: none;
+  outline: none;
+  min-height: 100px;
+  transition: border-color 0.15s;
+}
+
+.notes-input:focus { border-color: var(--amber); }
+
 /* ── ONBOARDING ── */
 .onboarding {
   position: fixed;

@@ -74,6 +74,11 @@
         <button class="ctrl-btn minus" onclick="addBeer(-1)">−1</button>
         <button class="ctrl-btn plus" onclick="addBeer(1)">+1</button>
       </div>
+
+      <div class="notes-wrap">
+        <div class="notes-label">TONIGHT'S NOTES</div>
+        <textarea id="tonight-notes" class="notes-input" placeholder="What are you up to tonight?"></textarea>
+      </div>
     </section>
 
     <!-- CALENDAR TAB -->
@@ -89,6 +94,10 @@
           <button class="ctrl-btn minus" onclick="editDay(-1)">−1</button>
           <div class="cal-edit-count" id="cal-edit-count">0</div>
           <button class="ctrl-btn plus" onclick="editDay(1)">+1</button>
+        </div>
+        <div class="notes-wrap" style="margin-top:12px;">
+          <div class="notes-label">NOTES</div>
+          <textarea id="cal-notes" class="notes-input" placeholder="No notes for this day yet..."></textarea>
         </div>
       </div>
       <div class="cal-grid" id="cal-grid">
