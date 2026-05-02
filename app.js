@@ -128,11 +128,16 @@ function saveNote(key, text) {
 function loadTonightNote() {
   const key = getNightKey();
   const notes = getNotes();
-  const old = document.getElementById('tonight-notes');
-  const fresh = old.cloneNode(true);
-  old.parentNode.replaceChild(fresh, old);
-  fresh.value = notes[key] || '';
-  fresh.addEventListener('input', () => saveNote(key, fresh.value));
+  const textarea = document.getElementById('tonight-notes');
+  textarea.value = notes[key] || '';
+}
+
+// Set up tonight notes listener once only
+function initTonightNoteListener() {
+  const textarea = document.getElementById('tonight-notes');
+  textarea.addEventListener('input', () => {
+    saveNote(getNightKey(), textarea.value);
+  });
 }
 
 // ── Beer counter ───────────────────────────────────────────────────────
@@ -142,6 +147,10 @@ window.addBeer = function(delta) {
   data[key] = Math.max(0, (data[key] || 0) + delta);
   saveData(data);
   renderCounter(delta);
+  // If today is selected in the calendar, keep the edit panel in sync
+  if (selectedDayKey === key) {
+    document.getElementById('cal-edit-count').textContent = data[key];
+  }
 };
 
 function renderCounter(delta) {
@@ -188,13 +197,21 @@ window.selectDay = function(key, cellEl) {
   }).toUpperCase();
   document.getElementById('cal-edit-date').textContent = label;
   document.getElementById('cal-edit-count').textContent = count;
+
+  // Load note for this day
   const notes = getNotes();
   const calNotes = document.getElementById('cal-notes');
   const newCalNotes = calNotes.cloneNode(true);
   calNotes.parentNode.replaceChild(newCalNotes, calNotes);
   newCalNotes.value = notes[key] || '';
   newCalNotes.addEventListener('input', () => saveNote(key, newCalNotes.value));
+
   document.getElementById('cal-edit').style.display = 'block';
+
+  // If today is selected, also sync tonight notes textarea
+  if (key === getNightKey()) {
+    document.getElementById('tonight-notes').value = newCalNotes.value;
+  }
 };
 
 window.editDay = function(delta) {
@@ -372,6 +389,7 @@ function initApp() {
   document.getElementById('lb-username').textContent = getMyName();
   renderCounter(0);
   loadTonightNote();
+  initTonightNoteListener();
 }
 
 initTabs();
