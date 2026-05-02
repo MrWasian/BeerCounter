@@ -734,6 +734,11 @@ html, body {
   color: var(--amber);
 }
 
+.fr-emoji {
+  font-size: 2.5rem;
+  margin: 4px 0;
+}
+
 .feed-section {
   margin-top: 28px;
   border-top: 1px solid var(--border);

@@ -392,7 +392,54 @@ function typewriterEffect(el, text) {
   }, 18);
 }
 
-// ── Friends ────────────────────────────────────────────────────────────
+// ── Friend requests ────────────────────────────────────────────────────
+let pendingRequests = [];
+let currentRequest = null;
+
+async function checkFriendRequests() {
+  const myCode = getMyCode();
+  if (!myCode) return;
+  const requests = await dbGet(`users/${myCode}/friendRequests`);
+  if (!requests) return;
+  pendingRequests = Object.values(requests);
+  showNextFriendRequest();
+}
+
+function showNextFriendRequest() {
+  if (pendingRequests.length === 0) return;
+  currentRequest = pendingRequests.shift();
+  document.getElementById('fr-message').textContent =
+    `${currentRequest.name} added you as a friend. Add them back?`;
+  document.getElementById('fr-modal').classList.remove('hidden');
+}
+
+window.acceptFriendRequest = function() {
+  if (!currentRequest) return;
+  const friends = getFriends();
+  if (!friends.includes(currentRequest.code)) {
+    friends.push(currentRequest.code);
+    saveFriends(friends);
+  }
+  removeFriendRequest(currentRequest.code);
+  document.getElementById('fr-modal').classList.add('hidden');
+  currentRequest = null;
+  showNextFriendRequest();
+};
+
+window.declineFriendRequest = function() {
+  if (!currentRequest) return;
+  removeFriendRequest(currentRequest.code);
+  document.getElementById('fr-modal').classList.add('hidden');
+  currentRequest = null;
+  showNextFriendRequest();
+};
+
+function removeFriendRequest(code) {
+  const myCode = getMyCode();
+  if (myCode) dbSet(`users/${myCode}/friendRequests/${code}`, null);
+}
+
+
 function getFriends() {
   try { return JSON.parse(localStorage.getItem('friends') || '[]'); }
   catch { return []; }
@@ -410,9 +457,15 @@ window.addFriend = async function() {
   if (getFriends().includes(code)) { err.textContent = 'Already added!'; return; }
   const user = await dbGet(`users/${code}`);
   if (!user) { err.textContent = 'Code not found. Check with your friend.'; return; }
+  // Add them locally
   const friends = getFriends();
   friends.push(code);
   saveFriends(friends);
+  // Send them a friend request notification
+  dbSet(`users/${code}/friendRequests/${getMyCode()}`, {
+    name: getMyName(),
+    code: getMyCode()
+  });
   input.value = '';
   closeModal('af-modal');
   renderLeaderboard();
@@ -442,6 +495,7 @@ function initApp() {
   renderCounter(0);
   loadTonightNote();
   initTonightNoteListener();
+  checkFriendRequests();
 }
 
 initTabs();
