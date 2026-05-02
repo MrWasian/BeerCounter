@@ -1,7 +1,4 @@
 // ── Firebase setup ─────────────────────────────────────────────────────
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-
 const firebaseConfig = {
   apiKey: "AIzaSyAyHS3kZ1miGQ5u4kVj_0XPN3AQkv_Da0A",
   authDomain: "beer-counter-f7b23.firebaseapp.com",
@@ -12,8 +9,27 @@ const firebaseConfig = {
   appId: "1:242962169788:web:3e78bec079f9fda23875b9"
 };
 
-const firebaseApp = initializeApp(firebaseConfig);
-const db = getDatabase(firebaseApp);
+let db = null;
+
+function initFirebase() {
+  try {
+    if (typeof firebase !== 'undefined') {
+      firebase.initializeApp(firebaseConfig);
+      db = firebase.database();
+    }
+  } catch(e) {
+    console.warn('Firebase init failed, running offline:', e);
+  }
+}
+
+function dbSet(path, value) {
+  try { if (db) db.ref(path).set(value); } catch(e) {}
+}
+
+function dbGet(path) {
+  if (!db) return Promise.resolve(null);
+  return db.ref(path).once('value').then(s => s.val()).catch(() => null);
+}
 
 // ── User identity ──────────────────────────────────────────────────────
 function getMyCode() { return localStorage.getItem('friendCode'); }
@@ -28,18 +44,13 @@ function generateCode() {
 
 // ── Onboarding ─────────────────────────────────────────────────────────
 function checkOnboarding() {
-  try {
-    document.getElementById('loading').classList.add('hidden');
-    if (!getMyName() || !getMyCode()) {
-      document.getElementById('onboarding').classList.remove('hidden');
-    } else {
-      document.getElementById('onboarding').classList.add('hidden');
-      document.getElementById('app').classList.remove('hidden');
-      initApp();
-    }
-  } catch(e) {
-    document.getElementById('loading').classList.add('hidden');
+  document.getElementById('loading').classList.add('hidden');
+  if (!getMyName() || !getMyCode()) {
     document.getElementById('onboarding').classList.remove('hidden');
+  } else {
+    document.getElementById('onboarding').classList.add('hidden');
+    document.getElementById('app').classList.remove('hidden');
+    initApp();
   }
 }
 
@@ -52,7 +63,7 @@ window.finishOnboarding = function() {
   const code = generateCode();
   localStorage.setItem('userName', name);
   localStorage.setItem('friendCode', code);
-  set(ref(db, `users/${code}`), { name, code, beers: {} });
+  dbSet(`users/${code}`, { name, code, beers: {} });
   document.getElementById('onboarding').classList.add('hidden');
   document.getElementById('app').classList.remove('hidden');
   initApp();
@@ -91,7 +102,7 @@ function getData() {
 function saveData(data) {
   localStorage.setItem('beerData', JSON.stringify(data));
   const code = getMyCode();
-  if (code) set(ref(db, `users/${code}/beers`), data);
+  if (code) dbSet(`users/${code}/beers`, data);
 }
 
 function getCount(key) {
@@ -110,20 +121,21 @@ function saveNote(key, text) {
   if (text.trim() === '') delete notes[key];
   else notes[key] = text;
   localStorage.setItem('beerNotes', JSON.stringify(notes));
-  // Sync to Firebase
   const code = getMyCode();
-  if (code) set(ref(db, `users/${code}/notes`), notes);
+  if (code) dbSet(`users/${code}/notes`, notes);
 }
 
 function loadTonightNote() {
   const key = getNightKey();
   const notes = getNotes();
-  const textarea = document.getElementById('tonight-notes');
-  textarea.value = notes[key] || '';
-  textarea.addEventListener('input', () => saveNote(key, textarea.value));
+  const old = document.getElementById('tonight-notes');
+  const fresh = old.cloneNode(true);
+  old.parentNode.replaceChild(fresh, old);
+  fresh.value = notes[key] || '';
+  fresh.addEventListener('input', () => saveNote(key, fresh.value));
 }
 
-
+// ── Beer counter ───────────────────────────────────────────────────────
 window.addBeer = function(delta) {
   const key = getNightKey();
   const data = getData();
@@ -144,17 +156,7 @@ function renderCounter(delta) {
   document.getElementById('display-date').textContent = formatDisplay(key);
 }
 
-function loadTonightNote() {
-  const key = getNightKey();
-  const notes = getNotes();
-  const old = document.getElementById('tonight-notes');
-  const fresh = old.cloneNode(true);
-  old.parentNode.replaceChild(fresh, old);
-  fresh.value = notes[key] || '';
-  fresh.addEventListener('input', () => saveNote(key, fresh.value));
-}
-
-// ── Tabs — initialized immediately on load ─────────────────────────────
+// ── Tabs ───────────────────────────────────────────────────────────────
 function initTabs() {
   document.querySelectorAll('.tab').forEach(tab => {
     tab.addEventListener('click', () => {
@@ -186,17 +188,12 @@ window.selectDay = function(key, cellEl) {
   }).toUpperCase();
   document.getElementById('cal-edit-date').textContent = label;
   document.getElementById('cal-edit-count').textContent = count;
-
-  // Load note for this day
   const notes = getNotes();
   const calNotes = document.getElementById('cal-notes');
-  calNotes.value = notes[key] || '';
-  // Remove old listener and add fresh one
   const newCalNotes = calNotes.cloneNode(true);
   calNotes.parentNode.replaceChild(newCalNotes, calNotes);
   newCalNotes.value = notes[key] || '';
   newCalNotes.addEventListener('input', () => saveNote(key, newCalNotes.value));
-
   document.getElementById('cal-edit').style.display = 'block';
 };
 
@@ -208,7 +205,6 @@ window.editDay = function(delta) {
   else data[selectedDayKey] = next;
   saveData(data);
   document.getElementById('cal-edit-count').textContent = next;
-  // If editing tonight's date, keep the counter tab in sync
   if (selectedDayKey === getNightKey()) renderCounter(0);
   renderCalendar();
   document.querySelectorAll('.cal-cell[data-key]').forEach(c => {
@@ -225,31 +221,25 @@ function renderCalendar() {
   const data = getData();
   const year = calendarDate.getFullYear();
   const month = calendarDate.getMonth();
-
   document.getElementById('cal-month-label').textContent =
     calendarDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }).toUpperCase();
-
   const grid = document.getElementById('cal-grid');
   const headers = Array.from(grid.querySelectorAll('.cal-day-name'));
   grid.innerHTML = '';
   headers.forEach(h => grid.appendChild(h));
-
   const firstDay = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const todayKey = getNightKey();
   let monthTotal = 0;
-
   for (let i = 0; i < firstDay; i++) {
     const blank = document.createElement('div');
     blank.className = 'cal-cell empty';
     grid.appendChild(blank);
   }
-
   for (let d = 1; d <= daysInMonth; d++) {
     const key = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     const count = data[key] || 0;
     monthTotal += count;
-
     const cell = document.createElement('div');
     cell.className = 'cal-cell';
     cell.dataset.key = key;
@@ -257,12 +247,10 @@ function renderCalendar() {
     if (count > 0) cell.classList.add('has-drinks');
     if (key === selectedDayKey) cell.classList.add('selected');
     cell.addEventListener('click', () => window.selectDay(key, cell));
-
     const dayNum = document.createElement('div');
     dayNum.className = 'cal-day-num';
     dayNum.textContent = d;
     cell.appendChild(dayNum);
-
     if (count > 0) {
       const countEl = document.createElement('div');
       countEl.className = 'cal-me-count';
@@ -271,7 +259,6 @@ function renderCalendar() {
     }
     grid.appendChild(cell);
   }
-
   document.getElementById('month-total').textContent = monthTotal;
   const allTime = Object.values(data).reduce((s, v) => s + (v || 0), 0);
   document.getElementById('alltime-total').textContent = allTime;
@@ -310,10 +297,7 @@ function renderLeaderboard() {
   const allCodes = [myCode, ...friends];
   const list = document.getElementById('lb-list');
   list.innerHTML = '<div class="lb-loading">Loading...</div>';
-
-  Promise.all(allCodes.map(code =>
-    get(ref(db, `users/${code}`)).then(snap => snap.val())
-  )).then(users => {
+  Promise.all(allCodes.map(code => dbGet(`users/${code}`))).then(users => {
     const valid = users.filter(Boolean);
     valid.sort((a, b) => getScore(b.beers, lbPeriod) - getScore(a.beers, lbPeriod));
     list.innerHTML = '';
@@ -355,8 +339,8 @@ window.addFriend = async function() {
   if (code.length < 6) { err.textContent = 'Codes are 6 characters.'; return; }
   if (code === getMyCode()) { err.textContent = "That's your own code!"; return; }
   if (getFriends().includes(code)) { err.textContent = 'Already added!'; return; }
-  const snap = await get(ref(db, `users/${code}`));
-  if (!snap.exists()) { err.textContent = 'Code not found. Check with your friend.'; return; }
+  const user = await dbGet(`users/${code}`);
+  if (!user) { err.textContent = 'Code not found. Check with your friend.'; return; }
   const friends = getFriends();
   friends.push(code);
   saveFriends(friends);
@@ -390,19 +374,6 @@ function initApp() {
   loadTonightNote();
 }
 
-// Tabs always init at page load regardless of onboarding state
 initTabs();
-
-// Fallback — if Firebase takes too long, show onboarding anyway after 5 seconds
-const loadingTimeout = setTimeout(() => {
-  checkOnboarding();
-}, 5000);
-
-// Normal init
-try {
-  checkOnboarding();
-  clearTimeout(loadingTimeout);
-} catch(e) {
-  console.error('Init error:', e);
-  checkOnboarding();
-}
+initFirebase();
+checkOnboarding();
