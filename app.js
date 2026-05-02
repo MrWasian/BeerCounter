@@ -132,12 +132,21 @@ function loadTonightNote() {
   textarea.value = notes[key] || '';
 }
 
-// Set up tonight notes listener once only
-function initTonightNoteListener() {
+window.saveTonightNote = function() {
+  const key = getNightKey();
   const textarea = document.getElementById('tonight-notes');
-  textarea.addEventListener('input', () => {
-    saveNote(getNightKey(), textarea.value);
-  });
+  saveNote(key, textarea.value);
+  const btn = document.querySelector('.notes-save-btn');
+  btn.textContent = 'SAVED!';
+  setTimeout(() => btn.textContent = 'SAVE NOTE', 2000);
+  // Sync tonight note to calendar if today is selected
+  if (selectedDayKey === key) {
+    document.getElementById('cal-notes').value = textarea.value;
+  }
+};
+
+function initTonightNoteListener() {
+  // No-op — now using explicit save button instead
 }
 
 // ── Beer counter ───────────────────────────────────────────────────────
@@ -314,30 +323,73 @@ function renderLeaderboard() {
   const allCodes = [myCode, ...friends];
   const list = document.getElementById('lb-list');
   list.innerHTML = '<div class="lb-loading">Loading...</div>';
+  const feedList = document.getElementById('feed-list');
+  feedList.innerHTML = '<div class="lb-loading">Loading...</div>';
+
   Promise.all(allCodes.map(code => dbGet(`users/${code}`))).then(users => {
     const valid = users.filter(Boolean);
     valid.sort((a, b) => getScore(b.beers, lbPeriod) - getScore(a.beers, lbPeriod));
+
+    // Leaderboard rows
     list.innerHTML = '';
     if (valid.length === 0) {
       list.innerHTML = '<div class="lb-empty">No friends yet — share your code!</div>';
-      return;
+    } else {
+      valid.forEach((user, i) => {
+        const score = getScore(user.beers, lbPeriod);
+        const isMe = user.code === myCode;
+        const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i+1}.`;
+        const row = document.createElement('div');
+        row.className = 'lb-row' + (isMe ? ' lb-me' : '');
+        row.innerHTML = `
+          <div class="lb-rank">${medal}</div>
+          <div class="lb-name">${user.name}${isMe ? ' (you)' : ''}</div>
+          <div class="lb-score">${score} 🍺</div>
+        `;
+        list.appendChild(row);
+      });
     }
-    valid.forEach((user, i) => {
-      const score = getScore(user.beers, lbPeriod);
-      const isMe = user.code === myCode;
-      const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i+1}.`;
-      const row = document.createElement('div');
-      row.className = 'lb-row' + (isMe ? ' lb-me' : '');
-      row.innerHTML = `
-        <div class="lb-rank">${medal}</div>
-        <div class="lb-name">${user.name}${isMe ? ' (you)' : ''}</div>
-        <div class="lb-score">${score} 🍺</div>
-      `;
-      list.appendChild(row);
-    });
+
+    // Tonight's notes feed
+    feedList.innerHTML = '';
+    const tonightKey = getNightKey();
+    const withNotes = valid.filter(u => u.notes && u.notes[tonightKey] && u.notes[tonightKey].trim() !== '');
+
+    if (withNotes.length === 0) {
+      feedList.innerHTML = '<div class="feed-empty">No entries yet tonight...</div>';
+    } else {
+      withNotes.forEach(user => {
+        const isMe = user.code === myCode;
+        const entry = document.createElement('div');
+        entry.className = 'feed-entry' + (isMe ? ' feed-me' : '');
+        entry.innerHTML = `
+          <div class="feed-name">${user.name}${isMe ? ' (you)' : ''}</div>
+          <div class="feed-text">${user.notes[tonightKey]}</div>
+        `;
+        feedList.appendChild(entry);
+        typewriterEffect(entry.querySelector('.feed-text'), user.notes[tonightKey]);
+      });
+    }
   }).catch(() => {
-    list.innerHTML = '<div class="lb-empty">Could not load leaderboard.</div>';
+    list.innerHTML = '<div class="lb-empty">Could not load.</div>';
+    feedList.innerHTML = '<div class="feed-empty">Could not load entries.</div>';
   });
+}
+
+function typewriterEffect(el, text) {
+  el.textContent = '';
+  const entry = el.closest('.feed-entry');
+  entry.classList.add('typing');
+  let i = 0;
+  const interval = setInterval(() => {
+    if (i < text.length) {
+      el.textContent += text[i];
+      i++;
+    } else {
+      clearInterval(interval);
+      entry.classList.remove('typing');
+    }
+  }, 18);
 }
 
 // ── Friends ────────────────────────────────────────────────────────────

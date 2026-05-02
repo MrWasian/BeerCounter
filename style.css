@@ -437,6 +437,26 @@ html, body {
   color: var(--amber);
 }
 
+.notes-save-btn {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--amber);
+  border-radius: 8px;
+  color: var(--amber);
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1rem;
+  letter-spacing: 0.15em;
+  padding: 12px 0;
+  margin-top: 8px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.notes-save-btn:active {
+  background: var(--amber);
+  color: #0d0d0d;
+}
+
 /* ── ONBOARDING ── */
 .onboarding {
   position: fixed;
@@ -712,6 +732,84 @@ html, body {
   font-family: 'Bebas Neue', sans-serif;
   font-size: 1.3rem;
   color: var(--amber);
+}
+
+.feed-section {
+  margin-top: 28px;
+  border-top: 1px solid var(--border);
+  padding-top: 20px;
+}
+
+.feed-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1rem;
+  letter-spacing: 0.2em;
+  color: var(--muted);
+  margin-bottom: 14px;
+}
+
+.feed-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.feed-empty {
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  font-style: italic;
+  padding: 12px 0;
+}
+
+.feed-entry {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 16px;
+  border-left: 3px solid var(--border);
+}
+
+.feed-entry.feed-me {
+  border-left-color: var(--amber);
+}
+
+.feed-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 0.85rem;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.feed-me .feed-name {
+  color: var(--amber);
+}
+
+.feed-text {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.78rem;
+  color: var(--text);
+  line-height: 1.7;
+  white-space: pre-wrap;
+  min-height: 1em;
+}
+
+.feed-text::after {
+  content: '▋';
+  display: inline-block;
+  animation: blink 1s step-end infinite;
+  color: var(--amber);
+  opacity: 0;
+}
+
+.feed-entry.typing .feed-text::after {
+  opacity: 1;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
 }
 
 .hidden { display: none !important; }

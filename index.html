@@ -63,7 +63,7 @@
     <nav class="tabs">
       <button class="tab active" data-tab="counter">TONIGHT</button>
       <button class="tab" data-tab="calendar">CALENDAR</button>
-      <button class="tab" data-tab="leaderboard">LEADERBOARD</button>
+      <button class="tab" data-tab="leaderboard">FRIENDS</button>
     </nav>
 
     <!-- COUNTER TAB -->
@@ -83,6 +83,7 @@
       <div class="notes-wrap">
         <div class="notes-label">TONIGHT'S NOTES</div>
         <textarea id="tonight-notes" class="notes-input" placeholder="What are you up to tonight?"></textarea>
+        <button class="notes-save-btn" onclick="saveTonightNote()">SAVE NOTE</button>
       </div>
     </section>
 
@@ -137,6 +138,11 @@
       </div>
       <div class="lb-list" id="lb-list">
         <div class="lb-loading">Loading...</div>
+      </div>
+
+      <div class="feed-section">
+        <div class="feed-title">TONIGHT'S ENTRIES</div>
+        <div class="feed-list" id="feed-list"></div>
       </div>
     </section>
 
